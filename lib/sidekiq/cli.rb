@@ -110,14 +110,12 @@ module Sidekiq
           Sidekiq::Logging.initialize_logger(Sidekiq.options[:logfile])
         end
       when 'TTIN'
+        hash = {}
         Thread.list.each do |thread|
-          Sidekiq.logger.info "Thread TID-#{thread.object_id.to_s(36)} #{thread['label']}"
-          if thread.backtrace
-            Sidekiq.logger.info thread.backtrace.join("\n")
-          else
-            Sidekiq.logger.info "<no backtrace available>"
-          end
+          next unless thread.backtrace
+          hash[thread.inspect] = thread.backtrace
         end
+        File.open("./tmp/#{Time.now.to_i}.json","w+") { |f| f.write hash.to_json }
       end
     end
 
